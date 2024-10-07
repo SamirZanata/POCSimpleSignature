@@ -18,23 +18,22 @@ import java.util.Base64;
 
 public class SignDocument {
 
+    // Método para gerar a assinatura eletrônica
     public static String generateSignature(String userData, String documentData, PrivateKey privateKey) throws Exception {
         String dataToSign = userData + documentData + LocalDateTime.now(); // Inclui o timestamp na assinatura
 
-
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] hash = digest.digest(dataToSign.getBytes(StandardCharsets.UTF_8));
-
 
         Signature signature = Signature.getInstance("SHA256withRSA");
         signature.initSign(privateKey);
         signature.update(hash);
         byte[] signedData = signature.sign();
 
-
         return Base64.getEncoder().encodeToString(signedData);
     }
 
+    // Método para adicionar a assinatura ao PDF
     public static void signPDF(String pdfPath, String userData, String signature) throws IOException {
         File file = new File(pdfPath);
 
@@ -55,34 +54,34 @@ public class SignDocument {
                 contentStream.endText();
             }
 
-            String signedFilePath = "signed_" + file.getName(); // Nome do arquivo assinado
+            // Define o caminho para salvar o arquivo assinado
+            String signedFilePath = "output/signed_" + file.getName(); 
             document.save(new File(signedFilePath));
             System.out.println("Documento PDF assinado com sucesso em: " + signedFilePath);
         }
     }
 
+    // Método principal que processa o PDF e assina
     public static void main(String[] args) {
+        if (args.length < 1) {
+            System.err.println("Uso: java SignDocument <caminho_do_pdf>");
+            return;
+        }
+
+        String pdfPath = args[0]; // Recebe o caminho do PDF via argumento
         try {
-
+            // Dados fictícios do usuário
             String userData = "Nome: Samir Zanata | Email: samir@example.com";
-
-
             String documentData = "Contrato de prestação de serviços - Documento XYZ";
 
-
+            // Gera chave privada e assinatura
             KeyPair keyPair = generateKeyPair();
-
-
             savePrivateKey(keyPair.getPrivate(), "private_key.pem");
-
 
             String signature = generateSignature(userData, documentData, keyPair.getPrivate());
             System.out.println("Assinatura Eletrônica (Base64): " + signature);
 
-
-            String pdfPath = "C:\\Users\\Zanata\\Desktop\\GeneratePddf\\teste.pdf";
-
-
+            // Assina o PDF
             signPDF(pdfPath, userData, signature);
 
         } catch (IOException e) {
@@ -94,12 +93,14 @@ public class SignDocument {
         }
     }
 
+    // Método para gerar um par de chaves (privada e pública)
     private static KeyPair generateKeyPair() throws NoSuchAlgorithmException {
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
         keyGen.initialize(2048); // Tamanho da chave
         return keyGen.generateKeyPair();
     }
 
+    // Método para salvar a chave privada
     private static void savePrivateKey(PrivateKey privateKey, String filename) throws Exception {
         byte[] encoded = privateKey.getEncoded();
         String privateKeyPEM = "-----BEGIN PRIVATE KEY-----\n" +
@@ -113,6 +114,7 @@ public class SignDocument {
         System.out.println("Chave privada salva em: " + filename);
     }
 
+    // Método para carregar uma chave pública a partir de um certificado X.509
     private static PublicKey loadPublicKey(String filename) throws Exception {
         File file = new File(filename);
         if (!file.exists()) {
