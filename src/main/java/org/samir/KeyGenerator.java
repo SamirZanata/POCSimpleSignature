@@ -5,24 +5,19 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.util.Base64;
 
-
 public class KeyGenerator {
-
 
     public static void generateKeyPair(String privateKeyPath, String publicKeyPath) throws Exception {
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
         keyGen.initialize(2048); // Tamanho da chave
 
-
         KeyPair pair = keyGen.generateKeyPair();
-
 
         try (FileWriter privateKeyWriter = new FileWriter(privateKeyPath)) {
             privateKeyWriter.write("-----BEGIN PRIVATE KEY-----\n");
             privateKeyWriter.write(Base64.getEncoder().encodeToString(pair.getPrivate().getEncoded()).replaceAll("(.{64})", "$1\n"));
             privateKeyWriter.write("-----END PRIVATE KEY-----\n");
         }
-
 
         try (FileWriter publicKeyWriter = new FileWriter(publicKeyPath)) {
             publicKeyWriter.write("-----BEGIN PUBLIC KEY-----\n");
